@@ -1,0 +1,640 @@
+nsloo-----------------MQ Installation-----------------
+apt get-update
+
+apt-get install rpm
+
+ulimit -n 
+ 
+ulimit -n 11000
+ 
+cat /proc/sys/fs/file-max
+
+sysctl -w fs.file-max=524288
+
+
+
+rpm -ivh --nodeps --force-debian MQSeriesRunt*
+rpm -ivh --nodeps --force-debian MQSeriesSer*
+ 
+/opt/mqm/bin/mqconfig 
+
+ rpm -ivh --nodeps --force-debian MQSeriesSDK*
+ rpm -ivh --nodeps --force-debian MQSeriesCli*
+ rpm -ivh --nodeps --force-debian MQSeriesJav*
+ rpm -ivh --nodeps --force-debian MQSeriesSam*
+ rpm -ivh --nodeps --force-debian gsk7bas-7.0*
+ rpm -ivh --nodeps --force-debian MQSeriesKey*
+ rpm -ivh --nodeps --force-debian MQSeriesMan*
+ 
+ 
+/opt/mqm/bin/setmqinst -i -p /opt/mqm/
+
+su mqm
+
+. /opt/mqm/bin/setmqenv -s
+
+dspmqver
+
+apt-get install firefox
+
+ apt-get install libgtk2.0-0:i386
+
+ apt-get install libxtst6:i386
+
+ apt-get install libxi6 libxtst6 libxrender1
+                                         
+MQExplorer
+
+
+
+/var/mqm/qmgrs/qm!apple/errors tail -f AMQERR01.LOG
+
+---------------IN RHEL-----------------
+
+  ./mqlicense.sh -accept
+ rpm -ivh MQSeriesRuntime-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesJRE-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesJava-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesFTBase-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesServer-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesFTAgent-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesAMS-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesClient-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesExplorer-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesFTLogger-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesFTService-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesFTTools-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesGSKit-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesMan-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesSDK-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesSamples-8.0.0-4.x86_64.rpm
+ rpm -ivh MQSeriesXRService-8.0.0-4.x86_64.rpm
+
+============================= Centos 7 ================
+# login as root
+
+adduser mqm
+
+passwd mqm
+
+groupadd mqm
+
+###usermod -a -G groupname username
+
+usermod -a -G mqm mqm
+
+
+
+./mqlicense.sh
+
+rpm -ivh MQSeries*
+
+/opt/mqm/bin/setmqinst -i -p /opt/mqm/
+
+#After the installation has completed, run the '/opt/mqm/bin/mqconfig'
+#command, using the 'mqm' user ID.
+
+/opt/mqm/bin/setmqenv –s
+
+#Check that the environment is set up correctly using---- 
+
+dspmqver 
+
+===============================================
+
+-----------------------MQ Configuration------------------------
+
+Follow LAB JAM tutorials//
+
+For remote administration of WMQ7PROD manager created in lab jam follow steps
+1.)Define channel
+
+runmqsc WMQ7PROD
+5724-H72 (C) Copyright IBM Corp. 1994, 2005. ALL RIGHTS RESERVED.
+Starting MQSC for queue manager qm.apple.
+
+
+DEFINE CHANNEL(SYSTEM.ADMIN.SVRCONN) CHLTYPE(SVRCONN)
+1 : DEFINE CHANNEL(SYSTEM.ADMIN.SVRCONN) CHLTYPE(SVRCONN)
+AMQ8014: WebSphere MQ channel created.
+start channel(SYSTEM.ADMIN.SVRCONN)
+2 : start channel(SYSTEM.ADMIN.SVRCONN)
+AMQ8018: Start WebSphere MQ channel accepted.
+end
+3 : end
+2 MQSC commands read.
+No commands have a syntax error.
+All valid MQSC commands were processed.
+
+2). Create a group and add auser to grant access
+
+groupadd mqdevs
+
+useradd -G mqdevs mqdev1
+
+passwd mqdev1
+
+3).From local MQEXPLORER 
+
+In the WebSphere® MQ Explorer Navigator pane, right-click the queue manager and click Object Authorities > Add Role Based Authorities The Add Role Based Authorities wizard opens.
+
+setmqaut -m WMQ7 -t q -n SYSTEM.ADMIN.COMMAND.QUEUE -p mqdev1 +inq +put +dsp
+setmqaut -m WMQ7 -t q -n SYSTEM.ADMIN.COMMAND.QUEUE -g mqdevs +inq +put +dsp
+
+
+----------------------------------------------------
+crtmqm qm.apple
+
+crtmqm -q qm.orange          -- it creates and makes this q manager as default
+
+strmqm               -- This starts  default q manager 
+
+strmqm qm.apple
+
+runmqsc qm.apple
+
+define qlocal(q1)
+
+end
+
+runmqsc qm.apple
+
+define listener(qm.apple.listener) trptype(TCP) port(30000) ipaddr(192.168.0.156)
+
+alter listener(qm.apple.listener) trptype(tcp) ipaddr(192.168.0.156) (you dont need it if you already mention ipaddr in above command)
+
+start listener(qm.apple.listener)
+
+end
+echo "start LISTENER(SYSTEM.DEFAULT.LISTENER.TCP)" | runmqsc qm.apple
+echo "stop LISTENER(SYSTEM.DEFAULT.LISTENER.TCP)" | runmqsc qm.apple
+
+
+runmqsc qm.orange
+
+define listener(qm.orange.listener) trptype(TCP) port(30001) ipaddr(192.168.0.156)
+alter listener(qm.orange.listener) trptype(tcp) ipaddr(192.168.0.156) (you dont need it if you already mention ipaddr in above command)
+start listener(qm.orange.listener)
+end
+ps -ef | grep runmqlsr
+
+------------------------------------------------Granting Privilages---
+Granting read-only access to all resources on a queue manager
+
+groupadd mqdevs
+
+useradd -G mqdevs mqreader
+or 
+usermod -a -G mqdevs haris
+
+passwd mqreader
+======================== Template ==================
+setmqaut -m SQM -n '**' -t queue -g mqdevs +browse +put +dsp +alladm  +put
+setmqaut -m SQM -n @class -t queue -g mqdevs +crt
+setmqaut -m SQM -n SYSTEM.ADMIN.COMMAND.QUEUE -t queue -g mqdevs +dsp +inq +put
+setmqaut -m SQM -n SYSTEM.MQEXPLORER.REPLY.QUEUE -t queue -g mqdevs +dsp +inq +get
+setmqaut -m SQM -n '**' -t topic -g mqdevs +alladm
+setmqaut -m SQM -n @class -t topic -g mqdevs +crt
+setmqaut -m SQM -n '**' -t channel -g mqdevs +alladm
+setmqaut -m SQM -n @class -t channel -g mqdevs +crt
+setmqaut -m SQM -n '**' -t clntconn -g mqdevs +alladm
+setmqaut -m SQM -n @class -t clntconn -g mqdevs +crt
+setmqaut -m SQM -n '**' -t authinfo -g mqdevs +alladm
+setmqaut -m SQM -n @class -t authinfo -g mqdevs +crt
+setmqaut -m SQM -n '**' -t listener -g mqdevs +alladm
+setmqaut -m SQM -n @class -t listener -g mqdevs +crt
+setmqaut -m SQM -n '**' -t namelist -g mqdevs +alladm
+setmqaut -m SQM -n @class -t namelist -g mqdevs +crt
+setmqaut -m SQM -n '**' -t process -g mqdevs +alladm
+setmqaut -m SQM -n @class -t process -g mqdevs +crt
+setmqaut -m SQM -n '**' -t service -g mqdevs +alladm
+setmqaut -m SQM -n @class -t service -g mqdevs +crt
+setmqaut -m SQM -t qmgr -g mqdevs +alladm +connect
+setmqaut -m SQM -n ** -t queue -g mqdevs +browse +dsp
+
+
+
+
+
+====================== yo may have to replace ** with '**' depends on shell =========================
+setmqaut -m QM1 -n '*' -t queue -g mqdevs +browse +dsp +put +get +inq
+setmqaut -m QM1 -n SYSTEM.ADMIN.COMMAND.QUEUE -t queue -g mqdevs +dsp +inq +put
+setmqaut -m QM1 -n SYSTEM.MQEXPLORER.REPLY.MODEL -t queue -g mqdevs +dsp +inq +get
+setmqaut -m QM1 -n '*' -t topic -g mqdevs +dsp
+setmqaut -m QM1 -n '*' -t channel -g mqdevs +dsp
+setmqaut -m QM1 -n '*' -t clntconn -g mqdevs +dsp
+setmqaut -m QM1 -n '*' -t authinfo -g mqdevs +dsp
+setmqaut -m QM1 -n '*' -t listener -g mqdevs +dsp
+setmqaut -m QM1 -n '*' -t namelist -g mqdevs +dsp
+setmqaut -m QM1 -n '*' -t process -g mqdevs +dsp
+setmqaut -m QM1 -n '*' -t service -g mqdevs +dsp
+setmqaut -m QM1 -t qmgr -g mqdevs +dsp +inq +connect
+============= To display the auths
+
+dspmqaut -m SQM -t qmgr -p haris // on QMGR
+dspmqaut -m SQM -n SQM_RQ1 -t queue -p haris
+=============================================
+SET CHLAUTH(SYSTEM.ADMIN.SVRCONN) TYPE(ADDRESSMAP) ADDRESS(192.168.0.51) USERSRC(CHANNEL)
+----------------------------------------------------------------
+
+
+
+
+
+
+
+define channel (qm.orange.qm.apple) chltype (sdr) conname ('192.168.2.144(30000)') xmitq (qm.orange.tq) trptype (tcp)
+
+
+crtmqm testqm
+
+strmqm testqm
+
+endmqm - i testqm
+
+runmqsc testqm
+
+define qlocal(q1)
+
+runmqlsr -t tcp -m testqm -p 30000
+
+ALTER CHANNEL(SYSTEM.ADMIN.SVRCONN) CHLTYPE(SVRCONN) MCAUSER('bpmadmin')
+DEFINE LISTENER (TEST_LISTENER) TRPTYPE (TCP) CONTROL (QMGR) PORT (30000)
+
+start channel(SYSTEM.ADMIN.SVRCONN)
+
+start channel(SYSTEM.ADMIN.SVRCONN)
+
+DEFINE QMODEL(SYSTEM.MQEXPLORER.REPLY.MODEL)
+
+
+setmqaut -m  testqm -t qmgr -p mqm +all
+
+sudo usermod -aG sudo mqm
+
+
+--------------------Create and start Listener on apple-----------
+runmqsc qm.apple
+define listener(qm.apple.listener) trptype(TCP) port(30000) ipaddr(192.168.2.100)
+start listener(qm.apple.listener)
+end
+----------------Create and start Listener on orange------------------
+runmqsc qm.orange
+
+define listener(qm.orange.listener) trptype(TCP) port(30001) ipaddr(192.168.2.100)
+
+start listener(qm.orange.listener)
+end
+------------------
+
+start runmqlsr -m qm.apple -t TCP
+
+---------------
+strmqm qm.apple
+
+runmqsc  qm.apple
+
+netstat -an |grep 30000
+
+endmqm qm.apple
+
+endmqm -i qm.apple
+
+runmqlsr -t tcp -m qm.apple -p 30000
+
+-------
+
+runmqsc qm.orange
+
+stop listener(qm.orange.listener)
+
+start listener(qm.orange.listener)
+
+setmqaut -m  qm.apple -t qmgr -p bpmadmin +connect
+
+setmqaut -m  testqm -t qmgr -p mqm +all
+
+usermod -a -G mqm bpmadmin
+
+alter listener(qm.apple.listener) trptype(tcp) ipaddr(192.168.2.*)
+
+alter listener(qm.apple.listener) trptype(tcp) ipaddr(192.168.2.160)
+
+dspmqaut -m testqm -t qmgr -p bpmadmin
+
+display chstatus(SYSTEM.ADMIN.SVRCONN)
+
+start channel(SYSTEM.ADMIN.SVRCONN)
+
+http://bencane.com/2013/04/22/websphere-mq-cheat-sheet-for-system-administrators/
+
+http://www.webspheretools.com/sites/webspheretools.nsf/docs/MQ%20tutorial.%20MQ%20Intercommunication.%20Queue%20Local%20and%20Queue%20Remote%20example!opendocument
+-------------------------Creation of Qs & Configuration with WAS------------------------
+1. Create a Q manager TESTQMGR1
+
+crtmqm TESTQMGR1
+
+2. Start TESTQMGR1
+
+strmqm  TESTQMGR1
+
+3. Test if it started successfully
+
+ps -ef|grep mqm
+
+4. Now go into TESTQMGR1 to configure it
+
+runmqsc TESTQMGR1
+
+5.For options avaiablble
+
+DISPLAY
+
+6. To display QUEUES avaiablble. It displays even system queues
+
+DISPLAY QLOCAL(*)
+
+7. Create new local queue "Q1LOCAL"
+
+DEFINE QLOCAL (Q1LOCAL)
+
+8. Create Listener 
+
+DEFINE LISTENER(TESTQMGR1.LISTENER) TRPTYPE(TCP) PORT(30001) IPADDR(192.168.2.151)
+
+9. To dsiplay listeners
+
+DISPLAY LISTENER(*)
+
+10. To start the listener you created
+
+START LISTENER(TESTQMGR1.LISTENER)
+
+11. To check if listener started
+
+ps -ef |grep mqlsr or ps -ef|grep mqm
+
+12. Telnet from other system to 30001 if not able to telnet open port
+
+firewall-cmd --zone=public --add-port=30001/tcp --permanent
+firewall-cmd --reload
+
+13. Alter ore replace new admin.svrconn channel
+
+DEFINE CHANNEL(SYSTEM.ADMIN.SVRCONN) CHLTYPE(SVRCONN) TRPTYPE(TCP) DESCR('WMQ DEFAULT CHANNEL') REPLACE
+
+14. Now send test message to that local queue . Exit from quemnager command 
+
+cd /opt/mqm/samp/bin
+
+./amqsput Q1LOCAL TESTQMGR1
+
+15. It listens for messages, type the messages you want to send
+
+Hi this is harish
+
+16. YOu can recieve the messages by follwing this command, Remember once you read, the messages will be erased from the queue
+
+ ./amqsget Q1LOCAL TESTQMGR1
+
+ 17. Disable the authorization on channel
+ 
+ALTER QMGR CHLAUTH(DISABLED)
+
+18. From Version 8 this is the command you have to run if MQRC_ NOT authenticated error occirs in was
+
+ALTER AUTHINFO(SYSTEM.DEFAULT.AUTHINFO.IDPWOS) AUTHTYPE(IDPWOS) CHCKCLNT(OPTIONAL)
+========================
+
+---------------------------
+SENDERS QMGR SIDE - SQM
+---------------------------
+# Create Q Manager
+crtmqm SQM
+strmqm SQM
+runmqsc SQM
+
+# Create Remote Q (it contains the address of the remote destinatio)
+DEFINE QREMOTE(SQM_RQ1) RNAME(RQM_LQ1) RQMNAME(RQM) XMITQ(SQM_TQ1)
+
+# Create Transmission Q - its local Q on which picks up message from SQM_R1
+DEFINE QLOCAL(SQM_TQ1) USAGE(XMITQ) 
+
+# Create Senders CHANNEL### DEFINE CHANNEL(SQM_RQM_CH1) CHLTYPE(SDR) CONNNAME(<QRM_IP_ADDR(PORT)>) XMITQ(SQM_TQ1)
+
+DEFINE CHANNEL(SQM_RQM_CH1) CHLTYPE(SDR) CONNAME('docker155(30003)') XMITQ(SQM_TQ1)
+
+ALTER CHANNEL(SQM_RQM_CH1) CHLTYPE(SDR) CONNAME('docker155(30003)') XMITQ(SQM_TQ1)
+
+
+ALTER CHANNEL(SQM_RQM_CH1) CHLTYPE(SDR) CONNAME('dns150(4000)') XMITQ(SQM_TQ1)
+
+DISPLAY CHANNEL(SQM_RQM_CH1)
+
+---------------------------
+RECEIEVER QMGR SIDE - RQM
+---------------------------
+# Create Q Manger
+crtmqm RQM
+strmqm RQM
+runmqsc RQM
+
+#  Create Reciver Q
+DEFINE QLOCAL(RQM_LQ1)
+
+# Create RECEIEVER CHANNEL
+DEFINE CHANNEL(SQM_RQM_CH1) CHLTYPE(RCVR)
+
+# LISTENER AT PORT
+DEFINE LISTENER(RQM_LSTR1) TRPTYPE(TCP) PORT(30003)
+DEFINE LISTENER(RQM_LSTR1) TRPTYPE(TCP) PORT(4000)
+START LISTENER(RQM_LSTR1)
+DISPLAY LISTENER(RQM_LSTR1)
+DISPLAY LSSTATUS(RQM_LSTR1)
+
+
+#### Start Sender Channel in Sending Q Mnager (SQM)
+runmqsc SQM
+START CHANNEL(SQM_RQM_CH1)
+DISPLAY CHS(SQM_RQM_CH1) # IT must be running status. Otherwise something wrong with above set up
+
+
+# now put messages and get messages
+cd cd /opt/mqm/samp/bin/
+./amqsput SQM_RQ1 SQM (in one session) 
+
+
+	========================== Triggering A Channel=====================
+	
+	DISPLAY  QLOCAL(SQM_TQ1)
+	ALTER  QLOCAL(SQM_TQ1) NOTRIGGER
+
+
+--> ALTER QL(<Trans Q Name>) TRIGGER TRIGTYPE (<FIRST/DEPTH/EVERY>) TRIGDATA(<SENDER CHNL NAME>) INITQ (SYSTEM.CHANNEL.INITQ) (for first)
+---> ALTER QL(<Trans Q Name>) TRIGGER TRIGTYPE (DEPTH) TRIGDPTH (<Number>)TRIGDATA(<SENDER CHNL NAME>) INITQ (SYSTEM.CHANNEL.INITQ) (for depth)
+
+ALTER QL(SQM_TQ1) TRIGGER TRIGTYPE (FIRST) TRIGDATA(SQM_RQM_CH1) INITQ (SYSTEM.CHANNEL.INITQ)
+ALTER QL(SQM_TQ1) TRIGGER TRIGTYPE (DEPTH) TRIGDPTH(5) TRIGDATA(SQM_RQM_CH1) INITQ (SYSTEM.CHANNEL.INITQ)
+
+# To inactivate channel
+STOP CHL(SQM_RQM_CH1) STATUS(INACTIVE)
+
+# To chnage disconnect interval-- in seconds -- need restart of channel
+ALTER CHL(SQM_RQM_CH1) CHLTYPE(SDR) DISCINT(20)
+
+====================DEAD LETTER Q================
+runmqsc SQM
+ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
+
+### DQ1 can alos be created and use it as DEAD LETTER Q1LOCAL
+DEFINE QLOCAL(SQM_DL)
+ALTER QMGR DEADQ(SQM_DL)
+
+
+## To browse message
+./amqsbcg SQM_DL SQM
+
+## To send messages from the DLQ to Q1LOCAL
+runmqldq <DEADQNAME> <QMGRNAME> REASON(<CDODE>) ACTION(RETRY) RETRY(3)
+
+======================= Dokcer MQ =====================================================================================================================================
+docker run --env LICENSE=accept --env MQ_QMGR_NAME=QM1 --name dckrmq --volume C:\Users\haris\Documents\dockerVols:/mnt/mqm --publish 1414:1414 --publish 9443:9443 --detach ibmcom/mq:9
+
+docker run --env LICENSE=accept --env MQ_QMGR_NAME=QM1 --name dckrmq --volume qm1data:/mnt/mqm -p 1414:1414 -p 9443:9443 -p 30000-30010:30000-30010 --detach ibmcom/mq:9
+
+docker exec -it dckrmq bash
+
+firewall-cmd --zone=public --add-port=1414/tcp --permanent
+firewall-cmd --reload
+
+================= To resolve 2035' ('MQRC_NOT_AUTHORIZED'). ! on webbsphere to allow anyone ===============
+
+ALTER QMGR CHLAUTH(DISABLED)
+ALTER AUTHINFO(SYSTEM.DEFAULT.AUTHINFO.IDPWOS) AUTHTYPE(IDPWOS) CHCKCLNT(OPTIONAL)  
+
+============================== To resolve 2035' ('MQRC_NOT_AUTHORIZED'). on MQ Explorer ! create user and add tail error log /var/lib/docker/volumes/qm1data/_data/data/qmgrs/SQM/errorswhile ur getting this error  ========= 
+
+### tail -f AMQERR01.LOG
+
+#bash root > useradd haris
+
+## bash root > setmqaut -m SQM -t qmgr -p haris +connect +inq +dsp
+
+#bash root > setmqaut -m SQM -n SYSTEM.MQEXPLORER.REPLY.MODEL -t queue -p haris +dsp +inq +get
+
+#bash root > setmqaut -m SQM  -n SYSTEM.ADMIN.COMMAND.QUEUE -t queue -p haris +dsp +inq +put
+
+====================== MQ Explorer for group
+
+
+
+----------------------------------------------------
+## bash  as root > usermod -a -G mqm root ////Or////// useradd -G mqdevs mqreader
+
+SET CHLAUTH('DEV.ADMIN.SVRCONN') TYPE(BLOCKUSER) USERLIST(ALLOWANY)
+
+ALTER AUTHINFO(SYSTEM.DEFAULT.AUTHINFO.IDPWOS) AUTHTYPE(IDPWOS) CHCKCLNT(NONE) CHCKLOCL(NONE)
+
+
+ 
+====================================================== SVR VIDEOS PRACTICE IN DOCKER CONTAINER =======================
+===================================================SVR VIDEOS PRACTICE IN DOCKER CONTAINER=====================================================================
+==================================================SVR VIDEOS PRACTICE IN DOCKER CONTAINER====
+---------------------------
+SENDERS QMGR SIDE - SQM
+---------------------------
+# Create Q Manager
+crtmqm SQM
+strmqm SQM
+runmqsc SQM
+
+# Create Remote Q (it contains the address of the remote destinatio)
+DEFINE QREMOTE(SQM_RQ1) RNAME(RQM_LQ1)    (RQM) XMITQ(SQM_TQ1)
+
+# Create Transmission Q - its local Q on which picks up message from SQM_R1
+DEFINE QLOCAL(SQM_TQ1) USAGE(XMITQ) 
+
+# Create Senders CHANNEL### DEFINE CHANNEL(SQM_RQM_CH1) CHLTYPE(SDR) CONNNAME(<RQM_IP_ADDR(PORT)>) XMITQ(SQM_TQ1)
+
+DEFINE CHANNEL(SQM_RQM_CH1) CHLTYPE(SDR) CONNAME('<docker container ip>(4000)') XMITQ(SQM_TQ1) // Working -- localhost doesnt work because RQM statys in same container ..
+
+ALTER CHANNEL(SQM_RQM_CH1) CHLTYPE(SDR) CONNAME('172.17.0.2(30003)') XMITQ(SQM_TQ1) // Working -- localhost doesnt work
+
+ALTER CHANNEL(SQM_RQM_CH1) CHLTYPE(SDR) CONNAME('docker155(30003)') XMITQ(SQM_TQ1) // doesnt work
+
+ALTER CHANNEL(SQM_RQM_CH1) CHLTYPE(SDR) CONNAME('192.168.0.155(30003)') XMITQ(SQM_TQ1) // doesnt work
+
+DISPLAY CHANNEL(SQM_RQM_CH1)
+STOP CHANNEL(SQM_RQM_CH1)
+START CHANNEL(SQM_RQM_CH1)
+
+
+# To test to connect to 
+
+DEFINE LISTENER(SQM_LSTR1) TRPTYPE(TCP) PORT(30004)
+START LISTENER(SQM_LSTR1)
+---------------------------
+RECEIEVER QMGR SIDE - RQM
+---------------------------
+# Create Q Manger
+crtmqm RQM
+strmqm RQM
+runmqsc RQM
+
+#  Create Reciver Q
+DEFINE QLOCAL(RQM_LQ1)
+
+# Create RECEIEVER CHANNEL
+DEFINE CHANNEL(SQM_RQM_CH1) CHLTYPE(RCVR)
+
+# LISTENER AT PORT
+DEFINE LISTENER(RQM_LSTR1) TRPTYPE(TCP) PORT(4000)
+START LISTENER(RQM_LSTR1)
+DISPLAY LSSTATUS(RQM_LSTR1)
+
+
+#### Start Sender Channel in Sending Q Mnager (SQM)
+runmqsc SQM
+START CHANNEL(SQM_RQM_CH1)
+DISPLAY CHS(SQM_RQM_CH1) # IT must be running status. Otherwise something wrong with above set up
+
+
+# now put messages and get messages
+cd cd /opt/mqm/samp/bin/
+./amqsput SQM_RQ1 SQM (in one session) 
+
+
+	========================== Triggering A Channel=====================
+	
+	DISPLAY  QLOCAL(SQM_TQ1)
+	ALTER  QLOCAL(SQM_TQ1) NOTRIGGER
+
+
+--> ALTER QL(<Trans Q Name>) TRIGGER TRIGTYPE (<FIRST/DEPTH/EVERY>) TRIGDATA(<SENDER CHNL NAME>) INITQ (SYSTEM.CHANNEL.INITQ) (for first)
+---> ALTER QL(<Trans Q Name>) TRIGGER TRIGTYPE (DEPTH) TRIGDPTH (<Number>)TRIGDATA(<SENDER CHNL NAME>) INITQ (SYSTEM.CHANNEL.INITQ) (for depth)
+
+ALTER QL(SQM_TQ1) TRIGGER TRIGTYPE (FIRST) TRIGDATA(SQM_RQM_CH1) INITQ (SYSTEM.CHANNEL.INITQ)
+ALTER QL(SQM_TQ1) TRIGGER TRIGTYPE (DEPTH) TRIGDPTH(5) TRIGDATA(SQM_RQM_CH1) INITQ (SYSTEM.CHANNEL.INITQ)
+
+# To inactivate channel
+STOP CHL(SQM_RQM_CH1) STATUS(INACTIVE)
+
+# To chnage disconnect interval-- in seconds -- need restart of channel
+ALTER CHL(SQM_RQM_CH1) CHLTYPE(SDR) DISCINT(20)
+
+====================DEAD LETTER Q================
+runmqsc SQM
+ALTER QMGR DEADQ(SYSTEM.DEAD.LETTER.QUEUE)
+
+### DQ1 can alos be created and use it as DEAD LETTER Q1LOCAL
+DEFINE QLOCAL(SQM_DL)
+ALTER QMGR DEADQ(SQM_DL)
+
+
+## To browse message
+./amqsbcg SQM_DL SQM
+
+## To send messages from the DLQ to Q1LOCAL
+runmqldq <DEADQNAME> <QMGRNAME> REASON(<CDODE>) ACTION(RETRY) RETRY(3)
+ 
+=====================

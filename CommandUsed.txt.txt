@@ -1,0 +1,146 @@
+====================================================== SVR VIDEOS PRACTICE IN DOCKER CONTAINER =======================
+===================================================SVR VIDEOS PRACTICE IN DOCKER CONTAINER=====================================================================
+==================================================SVR VIDEOS PRACTICE IN DOCKER CONTAINER====
+---------------------------
+SENDERS QMGR SIDE - SRC
+---------------------------
+# Create Q Manager
+crtmqm SORC_QM
+strmqm SORC_QM
+runmqsc SORC_QM
+
+# Create Remote Q (it contains the address of the remote destinatio)
+DEFINE QREMOTE(SEND_Q) RNAME(RECV_Q) RQMNAME(DEST_QM) XMITQ(TX_Q)
+
+# Create Transmission Q - its local Q on which picks up message from SRC_R1
+DEFINE QLOCAL(TX_Q) USAGE(XMITQ) 
+
+#DEFINE CHANNEL(SORC_DEST_CH) CHLTYPE(SDR) CONNAME('172.17.0.2(30008)') XMITQ(TX_Q)
+
+
+
+DISPLAY CHANNEL(SORC_DEST_CH)
+STOP CHANNEL(SORC_DEST_CH)
+START CHANNEL(SORC_DEST_CH)
+
+
+# To test to connect to 
+
+DEFINE LISTENER(SORC_LSTR1) TRPTYPE(TCP) PORT(30007)
+START LISTENER(SORC_LSTR1)
+
+
+################# Security Remove defaults(all- 3) till it shows for  DISPLAY CHLAUTH(*) AMQ8884E: Channel authentication record not found. ############################
+# DISPLAY CHLAUTH(*)
+# SET CHLAUTH(SYSTEM.ADMIN.SVRCONN) TYPE(ADDRESSMAP) ADDRESS('*')  ACTION(REMOVE)
+
+# REFRESH SECURITY
+
+# SET CHLAUTH(SYSTEM.*)   TYPE(ADDRESSMAP) ADDRESS('*')  ACTION(REMOVE)
+
+# SET  CHLAUTH(*)  TYPE(BLOCKUSER) USERLIST(*MQADMIN) ACTION(REMOVE)
+
+################# At this point you will not be able to connect from outside as incoming connection to QMGR is blocked .. Remember the connections are blocked on the QMGR level secuirty
+##################.. See MQ explorer connection file to connect from MQ Explorer ###########################################
+
+setmqaut -m SORC_QM -t qmgr -p haris  +connect 
+
+dspmqaut  -m SORC_QM -n 'SEND_Q' -t queue -p haris   ## TO display authorities on a Q(SEND_Q) in QMGR (SORC_QM)
+ 
+setmqaut  -m SORC_QM -n 'SEND_Q' -t queue -p haris +browse +dsp +put +get +inq
+
+dspmqaut -m SORC_QM -t qmgr -p haris    ## TO display authorities on QMGR (SORC_QM)
+
+
+
+
+
+#################### Add backstop rule ######################################
+SET CHLAUTH('*') TYPE(ADDRESSMAP) ADDRESS('*') USERSRC(NOACCESS) DESCR('Back-stop rule') ACTION(ADD)
+
+## To remove backstop
+
+ALTER QMGR CHLAUTH(DISABLED)
+
+#ALTER QMGR CHLAUTH(ENABLED)
+
+# REFRESH SECURITY
+###########################################Testing From windows Client ##############
+amqscnxc -x 192.168.0.155(30007) -c SYSTEM.DEF.SVRCONN SORC_QM  ## Test with this one
+SET MQSERVER=SYSTEM.DEF.SVRCONN/TCP/192.168.0.155(30007)
+
+amqsputc SEND_Q SORC_QM
+
+
+
+
+================= With Back stop rule in place nthing will be connected  here somne ways to allow connection =================
+## SET CHLAUTH('*') TYPE(ADDRESSMAP) ADDRESS('*')  ACTION(REMOVE)   // To remove backstop rule entirely - verything will be connected
+
+## SET CHLAUTH(SYSTEM.DEF.SVRCONN) TYPE(ADDRESSMAP) ADDRESS(192.168.0.51) USERSRC(CHANNEL) ACTION(ADD) // To allow connection from specific IP
+
+##   SET CHLAUTH(SYSTEM.DEF.SVRCONN) TYPE(ADDRESSMAP) ADDRESS(192.168.0.51)  ACTION(REMOVE) // To remove above rule 
+
+## SET // To allow connection based on user 
+SET CHLAUTH(SYSTEM.DEF.SVRCONN) TYPE(USERMAP) CLNTUSER('haris') MCAUSER('haris') ACTION(ADD)
+## SET CHLAUTH(SYSTEM.DEF.SVRCONN) TYPE(USERMAP) CLNTUSER('haris')  ACTION(REMOVE) // To remove above rule
+   
+## REFRESH SECURITY
+=============================================================== END SRC ===============================
+
+================================================== START DEST_QM==================================
+
+===================================
+
+RECEIEVER QMGR SIDE - TGT
+---------------------------
+# Create Q Manger
+crtmqm DEST_QM
+strmqm DEST_QM
+runmqsc DEST_QM
+
+#  Create Reciver Q
+DEFINE QLOCAL(RECV_Q)
+
+# Create RECEIEVER CHANNEL
+DEFINE CHANNEL(SORC_DEST_CH) CHLTYPE(RCVR)
+
+# LISTENER AT PORT
+DEFINE LISTENER(DEST_LSTR1) TRPTYPE(TCP) PORT(30008)
+START LISTENER(DEST_LSTR1)
+DISPLAY LSSTATUS(DEST_LSTR1)
+
+======================================================= End DEST_QM =========================
+
+#### Start Sender Channel in Sending Q Mnager (SRC)
+runmqsc SRC
+START CHANNEL(SORC_DEST_CH)
+DISPLAY CHS(SORC_DEST_CH) # IT must be running status. Otherwise something wrong with above set up
+
+
+# now put messages and get messages
+cd cd /opt/mqm/samp/bin/
+./amqsput SRC_RQ1 SRC (in one session) 
+======================================
+
+###########################################Testing From windows Client ##############
+amqscnxc -x 192.168.0.155(30007) -c SYSTEM.DEF.SVRCONN DEST_QM  ## Test with this one
+SET MQSERVER=SYSTEM.DEF.SVRCONN/TCP/192.168.0.155(30008)
+
+amqsgetc RECV_Q DEST_QM
+
+amqscnxc -x '192.168.0.155(30008)' -c SYSTEM.DEF.SVRCONN SORC_QM
+
+ALTER QMGR CHLAUTH(DISABLED) ## Even with this you may still get error because of QMGR level authentication
+
+### setmqaut -m DEST_QM -t qmgr -p haris +connect +inq  ## This will give access to qmgr but not Q
+
+## setmqaut -m DEST_QM -n 'RECV_Q' -t queue -p haris +browse +dsp +put +get +inq
+
+
+
+==================== Experimental ====================
+
+set MQSAMP_USER_ID=user123  ## TO test with different user id 
+
+set MQSAMP_USER_ID=  ## To remove

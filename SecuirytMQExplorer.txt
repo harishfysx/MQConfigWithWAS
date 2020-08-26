@@ -1,0 +1,83 @@
+========================================= To connect From MQ Explorer Remote ===============================
+To connect to a remote queue manager and perform remote administrative tasks using the WebSphere MQ Explorer, the user executing the WebSphere MQ Explorer is required to have the following authorities: The below commands just allow
+================
+CONNECT authority on the target queue manager object
+INQUIRE authority on the target queue manager object
+DISPLAY authority to the target queue manager object  ## setmqaut -m SRC_QM -t qmgr -p haris +dsp +inq +connect
+INQUIRE authority to the queue, SYSTEM.MQEXPLORER.REPLY.MODEL
+DISPLAY authority to the queue, SYSTEM.MQEXPLORER.REPLY.MODEL  
+INPUT (get) authority to the queue, SYSTEM.MQEXPLORER.REPLY.MODEL ## setmqaut -m SRC_QM -n SYSTEM.MQEXPLORER.REPLY.MODEL -t queue -p haris +dsp +inq  +get +put
+OUTPUT (put) authority to the queue, SYSTEM.ADMIN.COMMAND.QUEUE 
+INQUIRE authority on the queue, SYSTEM.ADMIN.COMMAND.QUEUE  ## setmqaut -m SRC_QM -n SYSTEM.ADMIN.COMMAND.QUEUE -t queue -p haris  +inq +put
+Authority to perform the action selected 
+
+==========================================================================================================
+Belwo are the commands to grant access indviudal objects
+=======================================================================================================
+setmqaut -m SRC_QM -n '*' -t queue -p haris +browse +dsp +put 
+setmqaut -m SRC_QM -n '*' -t topic -p haris +dsp
+setmqaut -m SRC_QM -n '*' -t channel -p haris +dsp
+setmqaut -m SRC_QM -n '*' -t clntconn -p haris +dsp
+setmqaut -m SRC_QM -n '*' -t authinfo -p haris +dsp
+setmqaut -m SRC_QM -n '*' -t listener -p haris +dsp
+setmqaut -m SRC_QM -n '*' -t namelist -p haris +dsp
+setmqaut -m SRC_QM -n '*' -t process -p haris +dsp
+setmqaut -m SRC_QM -n '*' -t service -p haris +dsp
+
+
+=================
+To diplay Auths 
+=================
+dspmqaut -m SRC_QM -n 'SRC_SND_Q' -t queue -p haris 
+
+
+========================== For Group =============
+setmqaut -m RQM -n '**' -t queue -g mqdevs +browse +put +dsp +alladm  +put +inq
+setmqaut -m RQM -n @class -t queue -g mqdevs +crt
+setmqaut -m RQM -n SYSTEM.ADMIN.COMMAND.QUEUE -t queue -g mqdevs +dsp +inq +put
+setmqaut -m RQM -n SYSTEM.MQEXPLORER.REPLY.QUEUE -t queue -g mqdevs +dsp +inq +get
+setmqaut -m RQM -n '**' -t topic -g mqdevs +alladm
+setmqaut -m RQM -n @class -t topic -g mqdevs +crt
+setmqaut -m RQM -n '**' -t channel -g mqdevs +alladm
+setmqaut -m RQM -n @class -t channel -g mqdevs +crt
+setmqaut -m RQM -n '**' -t clntconn -g mqdevs +alladm
+setmqaut -m RQM -n @class -t clntconn -g mqdevs +crt
+setmqaut -m RQM -n '**' -t authinfo -g mqdevs +alladm
+setmqaut -m RQM -n @class -t authinfo -g mqdevs +crt
+setmqaut -m RQM -n '**' -t listener -g mqdevs +alladm
+setmqaut -m RQM -n @class -t listener -g mqdevs +crt
+setmqaut -m RQM -n '**' -t namelist -g mqdevs +alladm
+setmqaut -m RQM -n @class -t namelist -g mqdevs +crt
+setmqaut -m RQM -n '**' -t process -g mqdevs +alladm
+setmqaut -m RQM -n @class -t process -g mqdevs +crt
+setmqaut -m RQM -n '**' -t service -g mqdevs +alladm
+setmqaut -m RQM -n @class -t service -g mqdevs +crt
+setmqaut -m RQM -t qmgr -g mqdevs +alladm +connect
+setmqaut -m RQM -n ** -t queue -g mqdevs +browse +dsp
+
+
+
+
+
+setmqaut -m RQM -n '*' -t queue -g mqdevs +browse +dsp +put 
+setmqaut -m RQM -n SYSTEM.ADMIN.COMMAND.QUEUE -t queue -g mqdevs +dsp +inq +put
+setmqaut -m RQM -n SYSTEM.MQEXPLORER.REPLY.MODEL -t queue -g mqdevs +dsp +inq +get
+setmqaut -m RQM -n '*' -t topic -g mqdevs +dsp
+setmqaut -m RQM -n '*' -t channel -g mqdevs +dsp
+setmqaut -m RQM -n '*' -t clntconn -g mqdevs +dsp
+setmqaut -m RQM -n '*' -t authinfo -g mqdevs +dsp
+setmqaut -m RQM -n '*' -t listener -g mqdevs +dsp
+setmqaut -m RQM -n '*' -t namelist -g mqdevs +dsp
+setmqaut -m RQM -n '*' -t process -g mqdevs +dsp
+setmqaut -m RQM -n '*' -t service -g mqdevs +dsp
+setmqaut -m RQM -t qmgr -g mqdevs +dsp +inq +connect
+
+
+dspmqaut -m RQM -t qmgr -g mqdevs
+
+dspmqaut -m RQM -t qmgr -p mqreader 
+
+dspmqaut -m RQM -n RQM_LQ1 -t queue -p mqreader
+
+
+setmqaut -m RQM -n RQM_LQ1 -t queue -p mqreader  +inq
